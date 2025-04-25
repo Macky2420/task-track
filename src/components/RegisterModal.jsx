@@ -4,11 +4,11 @@ import { auth, database } from "../database/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 
 const RegisterModal = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -54,11 +54,6 @@ const RegisterModal = ({ isOpen, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ ...toast, show: false }), 3000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -80,11 +75,23 @@ const RegisterModal = ({ isOpen, onClose }) => {
         createdAt: new Date().toISOString()
       });
 
-      showToast("Registration successful!");
+      message.success("Registration successful!");
       onClose();
       navigate(`/home/${userCredential.user.uid}`);
     } catch (error) {
-      // ... existing error handling
+      let errorMessage = "Registration failed. Please try again.";
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          errorMessage = "Email already in use.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Password should be at least 6 characters.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address.";
+          break;
+      }
+      message.error(errorMessage);
     }
     setLoading(false);
   };
@@ -107,32 +114,26 @@ const RegisterModal = ({ isOpen, onClose }) => {
   return (
     <dialog className={`modal ${isOpen ? 'modal-open' : ''} sm:modal-middle`}>
       <div className="modal-box max-w-md">
-        {/* Toast Notification */}
-        {toast.show && (
-          <div className={`toast toast-top toast-end`}>
-            <div className={`alert alert-${toast.type}`}>
-              <span>{toast.message}</span>
-            </div>
-          </div>
-        )}
-
         <h3 className="font-bold text-2xl mb-6 text-center">Create Your Account</h3>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
           {/* Full Name Input */}
           <div className="form-control">
-            <label className="label">
+            <label className="label" htmlFor="fullName">
               <span className="label-text">Full Name</span>
             </label>
             <input
+              id="fullName"
               type="text"
               name="fullName"
               placeholder="John Doe"
               className={`input input-bordered w-full ${errors.fullName ? 'input-error' : ''}`}
               value={formData.fullName}
               onChange={handleChange}
+              autoComplete="name"
+              aria-describedby="fullNameError"
             />
             {errors.fullName && (
-              <label className="label">
+              <label className="label" id="fullNameError">
                 <span className="label-text-alt text-red-500">{errors.fullName}</span>
               </label>
             )}
@@ -140,19 +141,22 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
           {/* Email Input */}
           <div className="form-control">
-            <label className="label">
+            <label className="label" htmlFor="email">
               <span className="label-text">Email</span>
             </label>
             <input
+              id="email"
               type="email"
               name="email"
               placeholder="name@example.com"
               className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
+              aria-describedby="emailError"
             />
             {errors.email && (
-              <label className="label">
+              <label className="label" id="emailError">
                 <span className="label-text-alt text-red-500">{errors.email}</span>
               </label>
             )}
@@ -160,14 +164,17 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
           {/* Gender Select */}
           <div className="form-control">
-            <label className="label">
+            <label className="label" htmlFor="gender">
               <span className="label-text">Gender</span>
             </label>
             <select
+              id="gender"
               name="gender"
               className={`select select-bordered w-full ${errors.gender ? 'select-error' : ''}`}
               value={formData.gender}
               onChange={handleChange}
+              autoComplete="sex"
+              aria-describedby="genderError"
             >
               <option value="">Select Gender</option>
               <option value="male">Male</option>
@@ -175,7 +182,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
               <option value="other">Other</option>
             </select>
             {errors.gender && (
-              <label className="label">
+              <label className="label" id="genderError">
                 <span className="label-text-alt text-red-500">{errors.gender}</span>
               </label>
             )}
@@ -183,19 +190,22 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
           {/* Job Title Input */}
           <div className="form-control">
-            <label className="label">
+            <label className="label" htmlFor="job">
               <span className="label-text">Job Title</span>
             </label>
             <input
+              id="job"
               type="text"
               name="job"
               placeholder="Software Developer"
               className={`input input-bordered w-full ${errors.job ? 'input-error' : ''}`}
               value={formData.job}
               onChange={handleChange}
+              autoComplete="organization-title"
+              aria-describedby="jobError"
             />
             {errors.job && (
-              <label className="label">
+              <label className="label" id="jobError">
                 <span className="label-text-alt text-red-500">{errors.job}</span>
               </label>
             )}
@@ -203,17 +213,20 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
           {/* Password Input */}
           <div className="form-control relative">
-            <label className="label">
+            <label className="label" htmlFor="password">
               <span className="label-text">Password</span>
             </label>
             <div className="relative">
               <input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="••••••••"
                 className={`input input-bordered w-full pr-12 ${errors.password ? 'input-error' : ''}`}
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="new-password"
+                aria-describedby="passwordError"
               />
               <button
                 type="button"
@@ -221,6 +234,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1 hover:bg-transparent z-10"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
+                {/* Eye icons remain the same */}
                 {showPassword ? (
                   <EyeOutlined className="text-lg text-gray-500" />
                 ) : (
@@ -229,7 +243,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
               </button>
             </div>
             {errors.password && (
-              <label className="label">
+              <label className="label" id="passwordError">
                 <span className="label-text-alt text-red-500">{errors.password}</span>
               </label>
             )}

@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import background from "../assets/background.png";
 import RegisterModal from "../components/RegisterModal";
 import LoginModal from "../components/LoginModal";
+import { FaTasks } from 'react-icons/fa';
 
 const Hero = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -23,8 +24,11 @@ const Hero = () => {
         <header className="navbar bg-base-100 shadow-lg px-4 sm:px-8">
           <div className="flex-1">
             <a className="btn btn-ghost normal-case text-xl italic" 
-              style={{ color: '#2f5d70' }}>  {/* Changed color and added italic */}
-              TaskTrack
+              >  {/* Changed color and added italic */}
+                  <FaTasks className="text-primary"/> 
+                  <span style={{ color: '#2f5d70' }}>
+                    TaskTrack
+                  </span>
             </a>
           </div>
           <div className="flex-none">
