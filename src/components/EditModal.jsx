@@ -33,7 +33,7 @@ const EditModal = ({ isOpen, task, onClose, onUpdate }) => {
         readOnly
       />
       <label htmlFor="edit-modal" className="modal cursor-pointer">
-        <label className="modal-box relative" htmlFor="">
+        <div className="modal-box relative">
           <h3 className="font-bold text-lg">Edit Task</h3>
           <div className="space-y-4 pt-4">
             <input
@@ -48,14 +48,14 @@ const EditModal = ({ isOpen, task, onClose, onUpdate }) => {
               name="description"
               placeholder="Description"
               className="textarea textarea-bordered w-full"
-              value={ form.description }
-              onChange={ handleChange }
+              value={form.description}
+              onChange={handleChange}
             />
             <select
               name="priority"
               className="select select-bordered w-full"
-              value={ form.priority }
-              onChange={ handleChange }
+              value={form.priority}
+              onChange={handleChange}
             >
               <option value="High">High</option>
               <option value="Medium">Medium</option>
@@ -65,15 +65,17 @@ const EditModal = ({ isOpen, task, onClose, onUpdate }) => {
               type="date"
               name="dueDate"
               className="input input-bordered w-full"
-              value={ form.dueDate }
-              onChange={ handleChange }
+              value={form.dueDate}
+              onChange={handleChange}
             />
           </div>
           <div className="modal-action">
-            <button className="btn btn-primary" onClick={ handleSave }>Save</button>
-            <button className="btn btn-ghost" onClick={ onClose }>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave}>Save</button>
+            <label htmlFor="edit-modal" className="btn btn-ghost" onClick={onClose}>
+              Cancel
+            </label>
           </div>
-        </label>
+        </div>
       </label>
     </>
   )

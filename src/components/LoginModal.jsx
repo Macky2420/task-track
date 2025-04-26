@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+import { auth } from "../database/firebaseConfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -7,12 +11,54 @@ const LoginModal = ({ isOpen, onClose }) => {
     email: "",
     password: ""
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Handle login submission
-    console.log("Form data:", formData);
-    onClose();
+    setLoading(true);
+    setError("");
+
+    try {
+      // Firebase authentication
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      
+      // Successful login
+      const user = userCredential.user;
+      message.success("Login successful!");
+      navigate(`/home/${user.uid}`);
+      onClose();
+      
+    } catch (error) {
+      // Handle errors
+      let errorMessage = "Login failed. Please try again.";
+      switch(error.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email format";
+          break;
+        case "auth/user-disabled":
+          errorMessage = "Account disabled";
+          break;
+        case "auth/user-not-found":
+          errorMessage = "No account found with this email";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Incorrect password";
+          break;
+        case "auth/too-many-requests":
+          errorMessage = "Too many attempts. Try again later";
+          break;
+      }
+      setError(errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -29,8 +75,22 @@ const LoginModal = ({ isOpen, onClose }) => {
   return (
     <dialog className={`modal ${isOpen ? 'modal-open' : ''} sm:modal-middle`}>
       <div className="modal-box max-w-md">
+        <button 
+          onClick={onClose}
+          className="btn btn-sm btn-circle absolute right-2 top-2"
+        >
+          ✕
+        </button>
+        
         <h3 className="font-bold text-2xl mb-6 text-center">Welcome Back</h3>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+        
+        {error && (
+          <div className="alert alert-error mb-4 p-3 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="grid grid-cols-1 gap-4">
           <div className="form-control">
             <label className="label">
               <span className="label-text">Email</span>
@@ -43,44 +103,61 @@ const LoginModal = ({ isOpen, onClose }) => {
               required
               value={formData.email}
               onChange={handleChange}
+              disabled={loading}
+              autoComplete="email"
             />
           </div>
 
           <div className="form-control relative">
-  <label className="label">
-    <span className="label-text">Password</span>
-  </label>
-  <div className="relative">
-    <input
-      type={showPassword ? "text" : "password"}
-      name="password"
-      placeholder="••••••••"
-      className="input input-bordered w-full pr-12" // Increased padding-right
-      required
-      value={formData.password}
-      onChange={handleChange}
-    />
-    <button
-      type="button"
-      onClick={togglePasswordVisibility}
-      className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1 hover:bg-transparent z-10"
-      aria-label={showPassword ? "Hide password" : "Show password"}
-    >
-      {showPassword ? (
-        <EyeOutlined className="text-lg text-gray-500" />
-      ) : (
-        <EyeInvisibleOutlined className="text-lg text-gray-500" />
-      )}
-    </button>
-  </div>
-</div>
+            <label className="label">
+              <span className="label-text">Password</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="••••••••"
+                className="input input-bordered w-full pr-12"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1 hover:bg-transparent z-10"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOutlined className="text-lg text-gray-500" />
+                ) : (
+                  <EyeInvisibleOutlined className="text-lg text-gray-500" />
+                )}
+              </button>
+            </div>
+          </div>
 
           <div className="modal-action mt-6">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <button 
+              type="button" 
+              className="btn btn-ghost" 
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              Login
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading || !formData.email || !formData.password}
+            >
+              {loading ? (
+                <span className="loading loading-spinner"></span>
+              ) : "Login"}
             </button>
           </div>
         </form>

@@ -145,7 +145,10 @@ const Home = () => {
                 {/* Progress with accessible label */}
                 <div className="mt-4">
                   <div className="mb-2">
-                    <label htmlFor={`progress-${task.id}`} className="flex justify-between text-sm">
+                    <label 
+                      htmlFor={`progress-${task.id}`} 
+                      className="flex justify-between text-sm"
+                    >
                       <span>Progress:</span>
                       <span className="text-sm">{task.progress}%</span>
                     </label>
@@ -186,7 +189,6 @@ const Home = () => {
         </div>
         {tasks.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl text-gray-300 mb-4"><FaTasks /></div>
             <h3 className="text-xl font-semibold">No tasks found</h3>
             <p className="text-gray-500 mt-2">Create your first task to get started</p>
           </div>

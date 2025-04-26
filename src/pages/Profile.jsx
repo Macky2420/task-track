@@ -5,11 +5,13 @@ import { onAuthStateChanged, sendPasswordResetEmail } from 'firebase/auth'
 import { ref, onValue, off } from 'firebase/database'
 import { message } from 'antd'
 import { FaEnvelope, FaVenusMars, FaBriefcase } from 'react-icons/fa'
+import ChangePassModal from '../components/ChangePassModal'
 
 const UserInfo = () => {
   const { userId } = useParams()
   const [profile, setProfile] = useState({ fullName: '', email: '', gender: '', job: '', avatar: '' })
   const [loading, setLoading] = useState(true)
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false)
 
   useEffect(() => {
     // Listen to auth for email
@@ -36,15 +38,6 @@ const UserInfo = () => {
       off(profileRef, 'value', listener)
     }
   }, [userId])
-
-  const handleChangePassword = async () => {
-    try {
-      await sendPasswordResetEmail(auth, profile.email)
-      message.success('Password reset email sent successfully')
-    } catch (error) {
-      message.error(error.message)
-    }
-  }
 
   if (loading) return (
     <div className="flex justify-center items-center h-full">
@@ -88,12 +81,17 @@ const UserInfo = () => {
           </div>
           {/* Actions */}
           <div className="card-actions mt-6 w-full">
-            <button className="btn btn-primary btn-block" onClick={handleChangePassword}>
+            <button className="btn btn-primary btn-block" onClick={() => setIsPassModalOpen(true)}>
               Change Password
             </button>
           </div>
         </div>
       </div>
+      <ChangePassModal
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+        email={profile.email}
+      />
     </div>
   )
 }
